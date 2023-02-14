@@ -34,7 +34,9 @@ namespace Akhila.Test.AzureFunctions
                 await client.StartNewAsync<string>("NICDetailsOrchestrator", nicNo);
             }
 
-            return null;
+            return nicNo != null
+                ? (ActionResult)new OkObjectResult($"Your NIC No is :  {nicNo}")
+                : new BadRequestObjectResult("Please pass a nicNo on the query string or in the request body"); ;
         }
 
         [FunctionName("NICDetailsOrchestrator")]
