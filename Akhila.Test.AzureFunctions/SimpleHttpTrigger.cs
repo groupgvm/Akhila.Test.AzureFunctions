@@ -3,11 +3,11 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace Akhila.Test.AzureFunctions
 {
@@ -31,12 +31,14 @@ namespace Akhila.Test.AzureFunctions
             if(!string.IsNullOrWhiteSpace(nicNo))
             {
                 msg.Add(nicNo);
-                await client.StartNewAsync<string>("NICDetailsOrchestrator", nicNo);
+                string res = await client.StartNewAsync<string>("NICDetailsOrchestrator", nicNo);
+                return client.CreateCheckStatusResponse(req, res);
             }
-
-            return nicNo != null
-                ? (ActionResult)new OkObjectResult($"Your NIC No is :  {nicNo}")
-                : new BadRequestObjectResult("Please pass a nicNo on the query string or in the request body"); ;
+            else
+            {
+                return new BadRequestObjectResult("Please pass an NIC on the query string as nicNo=<<NIC_NO>>");
+            }
+            
         }
 
         [FunctionName("NICDetailsOrchestrator")]
@@ -63,6 +65,7 @@ namespace Akhila.Test.AzureFunctions
         [FunctionName("GetGender")]
         public static string GetGender([ActivityTrigger] string nicNo, ILogger log)
         {
+            System.Threading.Thread.Sleep(15000);
             log.LogInformation($"GetGender activity function triggered");
             var datesInText = nicNo.Substring(2, 3);
             var noOfDates = Int32.Parse(datesInText);
@@ -82,6 +85,7 @@ namespace Akhila.Test.AzureFunctions
         [FunctionName("GetYear")]
         public static string GetYear([ActivityTrigger] string nicNo, ILogger log)
         {
+            System.Threading.Thread.Sleep(15000);
             log.LogInformation($"GetYear activity function triggered");
             var year = "19" + nicNo.Substring(0, 2);
             log.LogInformation($"year : {year}.");
